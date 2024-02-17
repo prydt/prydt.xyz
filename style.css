@@ -12,6 +12,9 @@ a {
 ul {
     list-style-type: square;
 }
+li:not(:last-child) {
+    margin-bottom: 5px;
+}
 #col {
     margin: 0 auto;
     max-width: 600px;
