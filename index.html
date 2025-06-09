@@ -1,92 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <title>prydt | Pranoy Dutta</title>
-        <meta name="description" content="Pranoy Dutta's Personal Webpage!">
-        <link href="source-code-pro.css" rel="stylesheet">
-        <link href="style.css" rel="stylesheet">
-    </head>
-    <body>
-        <div id="col">
-            <h1><span class="gradient">Pranoy Dutta</span>'s homepage</h1>
-            <!-- <h1><span id="p">p</span><span id="r">r</span><span id="y">y</span><span id="d">d</span><span id="t">t</span>'s homepage</h1> -->
-            <!-- <img id="pfp" src="dorothy_pfp.jpg"/> -->
-            <!-- <img id="pfp" src="pry_pic.jpg"/> -->
-            <img id="pfp" src="pry_face.jpg"/>
 
-            <!-- <p>My name is Pranoy Dutta (prydt) and I am a student at <a href="https://www.utexas.edu/" class="ut">UT Austin</a> (CS + <a href="https://liberalarts.utexas.edu/plan2/about-plan-ii/">Plan II Honors</a>) working with <a href="http://https://www.cs.utexas.edu/~vijay/">Dr. Vijay Chidambaram</a> and <a href="https://shravanrn.com/">Dr. Shravan Narayan</a>.</p> -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt</title>
 
-            <!-- <p>I am interested in</p>
-            <ul>
-                <li>distributed systems</li>
-                <li>formal verification</li>
-                <li>storage technologies</li>
-                <li>philosophy of science, ethics, and language</li>
-                <li>the effects of surveillance on society</li>
-            </ul> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital@0;1&display=swap" rel="stylesheet">
 
-            <!-- <p>4th year @ UT Austin, working with Dr. Vijay Chidambaram and Dr. Shravan Narayan on lowering <span style="text-decoration: wavy underline; cursor: pointer;" title="Interprocess Communication">IPC</span> latencies!</p> -->
+    <style>
+        body {
+            font-family: "JetBrains Mono", monospace;
+            font-optical-sizing: auto;
+            font-weight: 400;
+            font-style: normal;
+        }
 
-            <p>I am a 4th year student at UT Austin (CS + Plan II) advised by <a href="https://www.cs.utexas.edu/~vijay/">Dr. Vijay Chidambaram</a> and <a href="https://shravanrn.com/">Dr. Shravan Narayan</a>. I am currently working on <b>improving interprocess communication abstractions latencies</b> to enable efficient multi-process architectures.</p>
+        .cf {
+            color: #f78100;
+        }
+
+        a {
+            color: black;
+        }
+
+        .terminal-board {
+            border: 2px solid #000;
+            box-shadow: 8px 8px 0 black;
+            padding: 2rem;
+            max-width: 600px;
+            font-size: 1.05em;
+            margin: auto;
+            background-color: white;
+            transition: all 0.2s ease-in-out;
+            width: 100%;
+            box-sizing: border-box;
+            /* clearfix for floated image */
+            overflow: auto;
+        }
+
+        /* Responsive, left-justified image */
+        .terminal-board img {
+            max-width: 120px;
+            width: 35vw;
+            min-width: 200px;
+            height: auto;
+            display: block;
+            /* float: left; */
+            margin: 0 1.5rem 1rem 0;
+        }
+
+        /* A little effect to make it interactive */
+        .solid-shadow-box:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0 black;
+        }
+
+        .wave {
+            display: inline-block;
+            animation: waveAnim 1.5s infinite;
+            animation-timing-function: ease-in-out;
+            padding: 0%;
+        }
+
+        .wave:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .wave:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .wave:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .wave:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .wave:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes waveAnim {
+            0% {
+                transform: translateY(0);
+            }
+
+            20% {
+                transform: translateY(-6px);
+            }
+
+            40% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 700px) {
+            .terminal-board {
+                padding: 1rem;
+                font-size: 0.98em;
+                max-width: 98vw;
+            }
+
+            .terminal-board img {
+                max-width: 80px;
+                width: 28vw;
+                margin: 0 1rem 1rem 0;
+            }
+
+            h1#wave-title {
+                font-size: 1.5em;
+            }
+
+            h2 {
+                font-size: 1.1em;
+            }
+
+            ul {
+                padding-left: 1.2em;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .terminal-board {
+                padding: 0.5rem;
+                font-size: 0.92em;
+            }
+
+            .terminal-board img {
+                max-width: 48px;
+                width: 18vw;
+                margin: 0 0.5rem 0.5rem 0;
+            }
+
+            h1#wave-title {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <br>
+
+    <div class="terminal-board solid-shadow-box">
+        <img src="dither_it_pry_face.png" alt="me">
+
+        <h1 id="wave-title">
+            <span class="wave">p</span><span class="wave">r</span><span class="wave">y</span><span
+                class="wave">d</span><span class="wave">t</span>
+            (Pranoy Dutta)
+        </h1>
 
 
+        <p>speeding up databases <a href="https://cloudflare.com" class="cf">@cloudflare</a></p>
 
-            <!-- <p>I write my thoughts on a <a href="https://blog.prydt.xyz/">blog</a>.</p> -->
+        <p>interested in distributed systems, programming languages, philosophy</p>
 
-            <h2>Research Interests 📚</h2>
-            <!-- <p>I am interested in conducting research in distributed systems, databases, and CRDTs! I am also interested in functional programming, PL theory, and designing programming languages that better express distributed computation.</p> -->
-            <!-- <p>I am currently working with <a href="https://www.cs.utexas.edu/~vijay/">Dr. Vijay Chidambaram</a> on making it easier to verify distributed systems using PL theory and formal verification.</p> -->
-            <p>I am particularly interested in the intersection of programming language design and distributed / concurrent systems. After learning about CRDTs and languages like <a href="https://people.ucsc.edu/~palvaro/cidr11.pdf">Bloom</a> and <a href="https://www.jolie-lang.org/">Jolie</a>, I am convinced that <i>our programming languages can do more for us</i>.</p>
-            <p>I am interested in working towards creating new programming languages and abstractions which empower programmers to</p>
-            <ul>
-                <li>find distributed systems errors at compile-time.</li>
-                <li>specify and verify consistency properties inline.</li>
-                <li>write more expressive programs (through tools like Multiparty Session Types or Choreographic Programming).</li>
-            </ul>
-            <p>All without sacrificing performance or overwhelming programmers in complexity.</p>
+        <h2>check out some friends of mine :)</h2> (in lexicographic order)
+        <ul>
+            <li><a href="https://benaubin.com/">benaubin.com</a></li>
+            <li><a href="https://danielzting.github.io/">danielzting.github.io</a></li>
+            <li><a href="https://jeongwoo.xyz/">jeongwoo.xyz</a></li>
+            <li><a href="https://junelc.xyz/">junelc.xyz</a></li>
+            <li><a href="https://krithravi.com/">krithravi.com</a></li>
+            <li><a href="https://nitroguy10.github.io/">nitroguy10.github.io</a></li>
+            <li><a href="https://riley.lgbt/">riley.lgbt</a></li>
+            <li><a href="https://simonxiang.xyz/">simonxiang.xyz</a></li>
+            <li><a href="https://syntacticsugarglider.com/">syntacticsugarglider.com</a></li>
+            <li><a href="https://wbne.github.io/">wbne.github.io</a></li>
+            <li><a href="https://willow.phantoma.online/">willow.phantoma.online</a></li>
+            <li><a href="http://zxie.great-site.net/">zxie.great-site.net</a></li>
+        </ul>
 
-            <h2>Prior Work 💼</h2>
+        <hr>
+        <p>🚧 This website is currently under construction 🚧</p>
 
-            <p>My previous research work includes</p>
-            <ul>
-                <li>showing negation is underrepresented in Natural Language Processing tasks (<a href="https://aclanthology.org/2020.emnlp-main.732.pdf">EMNLP 2020</a>)</li>
-                <li>designing a hardware accelerator for sparse matrix computation (<a href="https://computerscience.engineering.unt.edu/sites/default/files/csrl/files/Express-MEMSYS2020.pdf">MEMSYS 2020</a>)</li>
-            </ul>
+    </div>
 
-            <p>I have been extremely fortunate to have been mentored by</p>
-            <ul>
-                <li><a href="https://scholar.google.co.in/citations?user=MpRVlJAAAAAJ&hl=en">Dr. Nagendra Gulur</a> (now at Texas Instruments)</li>
-                <li><a href="https://eduardoblanco.github.io">Dr. Eduardo Blanco</a> (now at University of Arizona)</li>
-                <li><a href="https://facultyinfo.unt.edu/faculty-profile?profile=lf0092">Dr. Lior Fishman</a></li>
-            </ul>
 
-        <!-- <h2>places to find me 🗼</h2>
+</body>
 
-            <p>email: pranoy (at) utexas.edu</p>
-
-	    <p>fedi (professional): <a href="https://discuss.systems/@pry" rel="me">@pry@discuss.systems</a></p>
-	    <p>fedi (casual): <a href="https://raru.re/@pry" rel="me">@prydt@raru.re</a></p> -->
-
-            <h2>check out some friends of mine 😃</h2>
-            (in lexicographic order)
-            <ul>
-                <li><a href="https://benaubin.com/">https://benaubin.com/</a></li>
-                <li><a href="https://danielzting.github.io/">https://danielzting.github.io/</a></li>
-                <li><a href="https://jeongwoo.xyz/">https://jeongwoo.xyz/</a></li>
-                <li><a href="https://junelc.xyz/">https://junelc.xyz/</a></li>
-                <li><a href="https://krithravi.com/">https://krithravi.com/</a></li>
-                <li><a href="https://nitroguy10.github.io/">https://nitroguy10.github.io/</a></li>
-                <li><a href="https://riley.lgbt/">https://riley.lgbt/</a></li>
-                <li><a href="https://simonxiang.xyz/">https://simonxiang.xyz/</a></li>
-                <li><a href="https://syntacticsugarglider.com/">https://syntacticsugarglider.com/</a></li>
-                <li><a href="https://wbne.github.io/">https://wbne.github.io/</a></li>
-                <li><a href="https://willow.phantoma.online/">https://willow.phantoma.online/</a></li>
-                <li><a href="http://zxie.great-site.net/">http://zxie.great-site.net/</a></li>
-            </ul>
-
-            <p>Want to see this site's source? <a href="https://github.com/prydt/prydt.xyz">Here!</a></p>
-        </div>
-    </body>
 </html>
