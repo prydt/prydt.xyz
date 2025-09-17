@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title></title>
+    <link rel="self" type="application/atom+xml" href="https://prydt.xyz/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://prydt.xyz"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-09-17T00:00:00+00:00</updated>
+    <id>https://prydt.xyz/atom.xml</id>
+    <entry xml:lang="en">
+        <title>another day, another blog</title>
+        <published>2025-09-17T00:00:00+00:00</published>
+        <updated>2025-09-17T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Pranoy Dutta
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/first/"/>
+        <id>https://prydt.xyz/blog/first/</id>
+        
+        <content type="html" xml:base="https://prydt.xyz/blog/first/">&lt;p&gt;I had a blog in one form or another for a while... but I haven&#x27;t really blogged consistently. A problem as old as time, really.&lt;&#x2F;p&gt;
+&lt;p&gt;My first commit to &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;prydt&#x2F;algorithms&#x2F;commits&#x2F;master&#x2F;&quot;&gt;prydt&#x2F;algorithms&lt;&#x2F;a&gt; is from 2017!&lt;&#x2F;p&gt;
+&lt;p&gt;I&#x27;ve moved from Jekyll to Hugo, and now from Hugo to Zola. The only real thing that has changed recently is that I am no longer using an off-the-shelf theme. I found that while some themes looked really neat, a lot of them were far too complex for my needs, and I had trouble modifying them to fit my needs.&lt;&#x2F;p&gt;
+&lt;p&gt;My current setup is exactly what I need: just default Zola, with a tiny style sheet.&lt;&#x2F;p&gt;
+&lt;p&gt;Finally, there is are a couple things I want to say about my thoughts on blogging. The first is that writing really helps in thinking.&lt;&#x2F;p&gt;
+&lt;p&gt;There&#x27;s a quote attributed to Leslie Lamport:&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Writing is nature&#x27;s way of telling us how lousy our thinking is. - Leslie Lamport&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;and although I cannot actually find a real source for this, I deeply agree with the sentiment.&lt;&#x2F;p&gt;
+&lt;p&gt;I also believe that perfectionism and wanting to have a perfect blog with only the highest quality posts is actually hampering my ability to become a better writer. This isn&#x27;t to say I&#x27;m going to put out utter garbage, but I will be loosening my standards and just trying to be a more consistent writer in general. Consistency and quantity will hopefully result in eventual quality.&lt;&#x2F;p&gt;
+&lt;p&gt;Finally, my plan is to make blogging a much more social activity. I will share my blog posts with friends, and I am making a blogging circle. Initially it might just be a Discord channel among friends, and that&#x27;s enough.&lt;&#x2F;p&gt;
+&lt;!-- 
+- writing really helps in thought
+- consistency and quantity aid in eventual quality
+- make it social! --&gt;</content>
+        
+    </entry>
+</feed>
