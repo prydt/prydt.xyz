@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt's site</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <h1>prydt's site</h1>
+            <nav>
+                <a href="/">home</a>
+                <a href="/blog">blog</a>
+                <a href="atom.xml">feed</a>
+            </nav>
+        </header>
+
+        <section class="content">
+            {% block content %}
+            {% endblock content %}
+        </section>
+
+        <footer>
+            <!-- TODO -->
+        </footer>
+    </main>
+
+</body>
+
+</html>

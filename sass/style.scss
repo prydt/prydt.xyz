@@ -1,0 +1,52 @@
+
+%jetbrains-mono-400 {
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+%jetbrains-mono-800 {
+  font-family: "JetBrains Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+}
+
+body {
+  @extend %jetbrains-mono-400;
+}
+
+h1 {
+  @extend %jetbrains-mono-800;
+}
+
+main {
+  // limit width = easier reading
+  max-width: 600px;
+
+  // to center
+  margin-left: auto;
+  margin-right: auto;
+}
+
+nav > a {
+  // cool border effect
+  color: black;
+  text-decoration: none;
+  padding: 3px;
+  border: .1rem solid black;
+  box-shadow: 2px 2px #bbb;
+}
+
+nav > a:hover {
+  box-shadow: 3px 3px #bbb;
+}
+
+blockquote {
+  background-color: lavender;
+}
+
+.cf {
+  color: #f17f1f;
+}

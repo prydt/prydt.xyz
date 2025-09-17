@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p>LATEST POST</p>
+
+{% for page in section.pages %}
+<p>{{ page.date | date(format="%b %d, %Y")}} <a href="{{ page.permalink | safe }}">{{ page.title }}</a></p>
+{% endfor %}
+
+<p>START OF BLOG</p>
+
+{% endblock content %}
