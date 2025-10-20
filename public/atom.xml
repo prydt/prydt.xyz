@@ -4,12 +4,12 @@
     <link rel="self" type="application/atom+xml" href="https://prydt.xyz/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://prydt.xyz"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2025-09-17T00:00:00+00:00</updated>
+    <updated>2025-10-19T00:00:00+00:00</updated>
     <id>https://prydt.xyz/atom.xml</id>
     <entry xml:lang="en">
         <title>another day, another blog</title>
         <published>2025-09-17T00:00:00+00:00</published>
-        <updated>2025-09-17T00:00:00+00:00</updated>
+        <updated>2025-10-19T00:00:00+00:00</updated>
         
         <author>
           <name>
@@ -19,25 +19,46 @@
           </name>
         </author>
         
-        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/first/"/>
-        <id>https://prydt.xyz/blog/first/</id>
+        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/first-post/"/>
+        <id>https://prydt.xyz/blog/first-post/</id>
         
-        <content type="html" xml:base="https://prydt.xyz/blog/first/">&lt;p&gt;I had a blog in one form or another for a while... but I haven&#x27;t really blogged consistently. A problem as old as time, really.&lt;&#x2F;p&gt;
-&lt;p&gt;My first commit to &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;prydt&#x2F;algorithms&#x2F;commits&#x2F;master&#x2F;&quot;&gt;prydt&#x2F;algorithms&lt;&#x2F;a&gt; is from 2017!&lt;&#x2F;p&gt;
-&lt;p&gt;I&#x27;ve moved from Jekyll to Hugo, and now from Hugo to Zola. The only real thing that has changed recently is that I am no longer using an off-the-shelf theme. I found that while some themes looked really neat, a lot of them were far too complex for my needs, and I had trouble modifying them to fit my needs.&lt;&#x2F;p&gt;
-&lt;p&gt;My current setup is exactly what I need: just default Zola, with a tiny style sheet.&lt;&#x2F;p&gt;
-&lt;p&gt;Finally, there is are a couple things I want to say about my thoughts on blogging. The first is that writing really helps in thinking.&lt;&#x2F;p&gt;
-&lt;p&gt;There&#x27;s a quote attributed to Leslie Lamport:&lt;&#x2F;p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Writing is nature&#x27;s way of telling us how lousy our thinking is. - Leslie Lamport&lt;&#x2F;p&gt;
+        <content type="html" xml:base="https://prydt.xyz/blog/first-post/">&lt;blockquote&gt;
+&lt;p&gt;Writing is nature&#x27;s way of telling us how lousy our thinking is. - (This quote is sometimes attributed to Leslie Lamport, but he is actually quoting &lt;a href=&quot;https:&#x2F;&#x2F;web.archive.org&#x2F;web&#x2F;20120121030813&#x2F;http:&#x2F;&#x2F;www.budiu.info&#x2F;blog&#x2F;2007&#x2F;05&#x2F;03&#x2F;an-interview-with-leslie-lamport&#x2F;&quot;&gt;Dick Guindon&lt;&#x2F;a&gt;)&lt;&#x2F;p&gt;
 &lt;&#x2F;blockquote&gt;
-&lt;p&gt;and although I cannot actually find a real source for this, I deeply agree with the sentiment.&lt;&#x2F;p&gt;
-&lt;p&gt;I also believe that perfectionism and wanting to have a perfect blog with only the highest quality posts is actually hampering my ability to become a better writer. This isn&#x27;t to say I&#x27;m going to put out utter garbage, but I will be loosening my standards and just trying to be a more consistent writer in general. Consistency and quantity will hopefully result in eventual quality.&lt;&#x2F;p&gt;
-&lt;p&gt;Finally, my plan is to make blogging a much more social activity. I will share my blog posts with friends, and I am making a blogging circle. Initially it might just be a Discord channel among friends, and that&#x27;s enough.&lt;&#x2F;p&gt;
-&lt;!-- 
-- writing really helps in thought
-- consistency and quantity aid in eventual quality
-- make it social! --&gt;</content>
+&lt;p&gt;Although I&#x27;ve had a blog in one form or another since &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;prydt&#x2F;algorithms&#x2F;commit&#x2F;c790175d077dc93b6dbb8ef59ea8f849db940245&quot;&gt;2017&lt;&#x2F;a&gt;, blogging never became a habit for me. I&#x27;d always have ideas but either never written them down. Whenever I did write something, I tried to do something too big or too polished.&lt;&#x2F;p&gt;
+&lt;p&gt;Here&#x27;s how I plan to change this.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;1-quantity-has-a-quality-all-its-own&quot;&gt;1. Quantity has a quality all its own.&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#1&quot;&gt;1&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;&lt;&#x2F;h2&gt;
+&lt;p&gt;It&#x27;s unintuitive, but I believe that lowering my standards to some degree will actually improve my writing quality in the long run.&lt;&#x2F;p&gt;
+&lt;p&gt;The desire to have a blog with only the highest quality posts is actually hampering my ability to become a better writer. While I don&#x27;t think you throw out all quality control, loosening standards in favor of consistency will hopefully result in increased quality.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;2-don-t-futz-with-it&quot;&gt;2. Don&#x27;t futz with it.&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#2&quot;&gt;2&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;&lt;&#x2F;h2&gt;
+&lt;p&gt;Like so many aspirational bloggers, I fell into the trap of spending more time on my blogging setup than actually writing. I started on &lt;a href=&quot;https:&#x2F;&#x2F;jekyllrb.com&quot;&gt;Jekyll&lt;&#x2F;a&gt;, switched to &lt;a href=&quot;https:&#x2F;&#x2F;gohugo.io&#x2F;&quot;&gt;Hugo&lt;&#x2F;a&gt;, and now I&#x27;m on &lt;a href=&quot;https:&#x2F;&#x2F;www.getzola.org&#x2F;&quot;&gt;Zola&lt;&#x2F;a&gt;. None of this matters to me or to readers.&lt;&#x2F;p&gt;
+&lt;p&gt;While it&#x27;s nice to have a cool custom theme, etc, etc, nothing matters more than just writing.&lt;&#x2F;p&gt;
+&lt;p&gt;I&#x27;ve settled on a setup and I&#x27;m not going to futz with it anymore.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;3-make-it-social&quot;&gt;3. Make it social!&lt;&#x2F;h2&gt;
+&lt;p&gt;I&#x27;ve enlisted a group of friends to join a &quot;blogging circle&quot; where we all share our writing and keep each other encouraged to continue to be consistent with it.&lt;&#x2F;p&gt;
+&lt;p&gt;I will link my friend&#x27;s posts here from time to time and I can&#x27;t wait to do this more.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;blog-trailer&quot;&gt;Blog Trailer&lt;&#x2F;h2&gt;
+&lt;p&gt;Here are some topics that interest me and I hope to cover in no particular order:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;Distributed Systems&lt;&#x2F;li&gt;
+&lt;li&gt;Programming languages&lt;&#x2F;li&gt;
+&lt;li&gt;Concurrency&lt;&#x2F;li&gt;
+&lt;li&gt;Hashtables&lt;&#x2F;li&gt;
+&lt;li&gt;Politics&lt;&#x2F;li&gt;
+&lt;li&gt;Music&lt;&#x2F;li&gt;
+&lt;li&gt;Anything I&#x27;m reading&lt;&#x2F;li&gt;
+&lt;li&gt;... really anything, we&#x27;ll see.&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;Here&#x27;s to consistency!
+-- Pranoy&lt;&#x2F;p&gt;
+&lt;h3 id=&quot;footnotes&quot;&gt;Footnotes&lt;&#x2F;h3&gt;
+&lt;div class=&quot;footnote-definition&quot; id=&quot;1&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;1&lt;&#x2F;sup&gt;
+&lt;p&gt;Attributed to &lt;a href=&quot;https:&#x2F;&#x2F;en.wikiquote.org&#x2F;wiki&#x2F;Quantity&quot;&gt;Karl Marx&lt;&#x2F;a&gt;, often misattributed to Stalin.&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div class=&quot;footnote-definition&quot; id=&quot;2&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;2&lt;&#x2F;sup&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;youtu.be&#x2F;IrIb7RSJL2I?t=615&quot;&gt;Don&#x27;t futz around with these hashbrowns&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+</content>
         
     </entry>
 </feed>

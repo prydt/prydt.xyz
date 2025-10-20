@@ -2,10 +2,21 @@
 
 {% block content %}
 <h1 class="title">{{ page.title }}</h1>
+<hr>
 
-<p><strong>{{ page.date }}</strong></p>
+<p>
+    Posted: <strong>{{ page.date }}</strong>
+</p>
+<p>
+    Last updated: <strong>{{page.updated}}</strong>
+</p>
+
+<p>Author: {{config.author}}</p>
+
+<hr>
+
 {{ page.content | safe }}
 
-- {{ config.author }}
+<!-- - {{ config.author }} -->
 
 {% endblock content %}
