@@ -7,9 +7,11 @@
 <p>
     Posted: <strong>{{ page.date }}</strong>
 </p>
+{% if page.updated %}
 <p>
     Last updated: <strong>{{page.updated}}</strong>
 </p>
+{% endif %}
 
 <p>Author: {{config.author}}</p>
 
