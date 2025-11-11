@@ -51,6 +51,22 @@ blockquote {
   color: #f17f1f;
 }
 
+// Make footnotes display properly at bottom
 .footnote-definition > p {
   display: inline;
+}
+
+img {
+  max-width: 600px;
+}
+
+
+// code highlights
+pre {
+  padding: 1rem;
+  overflow: auto;
+  font-size: 14px;
+}
+code {
+  font-size: 16px;
 }

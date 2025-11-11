@@ -4,8 +4,159 @@
     <link rel="self" type="application/atom+xml" href="https://prydt.xyz/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://prydt.xyz"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2025-10-19T00:00:00+00:00</updated>
+    <updated>2025-11-10T00:00:00+00:00</updated>
     <id>https://prydt.xyz/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Fuzzing Binary Search</title>
+        <published>2025-11-10T00:00:00+00:00</published>
+        <updated>2025-11-10T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Pranoy Dutta
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/fuzzing-binary-search/"/>
+        <id>https://prydt.xyz/blog/fuzzing-binary-search/</id>
+        
+        <content type="html" xml:base="https://prydt.xyz/blog/fuzzing-binary-search/">&lt;p&gt;Something close to a holy grail for me in programming is an automated test generator.&lt;&#x2F;p&gt;
+&lt;p&gt;Given some function, I would love to be able to throw my code at another program which probes my function and tries all the weird edge cases that I am sure to forget when writing unit tests or defensive asserts. Writing tests manually? That&#x27;s boring! And oftentimes when something is boring, getting a computer to do it is a solution.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;symbolic-execution-klee&quot;&gt;Symbolic Execution (Klee)&lt;&#x2F;h2&gt;
+&lt;p&gt;At first, I wanted to try out symbolic execution with &lt;a href=&quot;https:&#x2F;&#x2F;klee-se.org&quot;&gt;Klee&lt;&#x2F;a&gt;. Klee is a symbolic execution engine for LLVM which runs programs with symbolic values for the variables, which allows it to effectively simulate running the program on all possible inputs at once! This is extremely cool, although you can probably already guess that this can be quite computationally expensive, even with Klee being extremely clever. But for constrained enough tasks, this absolutely fits my defintiion of a holy grail. The issue is that I wanted to try this with Rust, and it looks like &lt;a href=&quot;https:&#x2F;&#x2F;www.unwoundstack.com&#x2F;blog&#x2F;klee-and-rust.html&quot;&gt;using Klee with Rust is not currently well supported&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;Alright... well maybe I&#x27;ll try to get that working sometime later, but for now let&#x27;s try something else. Fuzzing!&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;fuzzing&quot;&gt;Fuzzing&lt;&#x2F;h2&gt;
+&lt;p&gt;Fuzzing is a technique for finding interesting test cases using randomized inputs. While this by itself is not too ground-breaking, more sophisticated fuzzers like American Fuzzy Lop (AFL) use techniques for directing the random input to maximize code coverage of the test cases. This allows fuzzers to try to take every path within your code and weasel their way into control-flow states you might not have expected.&lt;&#x2F;p&gt;
+&lt;p&gt;For my very basic trial of fuzzing, I will be using two libraries: &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;proptest-rs&#x2F;proptest&quot;&gt;proptest&lt;&#x2F;a&gt;&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#1&quot;&gt;1&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt; and &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;rust-fuzz&#x2F;cargo-fuzz&quot;&gt;cargo-fuzz (libfuzzer)&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;the-problem&quot;&gt;The problem&lt;&#x2F;h2&gt;
+&lt;p&gt;I want to test these libraries on a small but important well-known bug: &lt;a href=&quot;https:&#x2F;&#x2F;research.google&#x2F;blog&#x2F;extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken&#x2F;&quot;&gt;integer overflow in binary search&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;Java&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-Java &quot;&gt;&lt;code class=&quot;language-Java&quot; data-lang=&quot;Java&quot;&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;public static int &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;binarySearch&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int[]&lt;&#x2F;span&gt;&lt;span&gt; a, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt; key) {
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt; low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt; high &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; a.length &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;while &lt;&#x2F;span&gt;&lt;span&gt;(low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;lt;=&lt;&#x2F;span&gt;&lt;span&gt; high) {
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;(low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span&gt; high) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&#x2F; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;&#x2F;&#x2F; BUG: low + high can overflow
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt; midVal &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; a[mid];
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;(midVal &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;lt;&lt;&#x2F;span&gt;&lt;span&gt; key)
+&lt;&#x2F;span&gt;&lt;span&gt;                low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;else if &lt;&#x2F;span&gt;&lt;span&gt;(midVal &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;gt;&lt;&#x2F;span&gt;&lt;span&gt; key)
+&lt;&#x2F;span&gt;&lt;span&gt;                high &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;else
+&lt;&#x2F;span&gt;&lt;span&gt;                &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;return&lt;&#x2F;span&gt;&lt;span&gt; mid; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;&#x2F;&#x2F; key found
+&lt;&#x2F;span&gt;&lt;span&gt;        }
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;return -&lt;&#x2F;span&gt;&lt;span&gt;(low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;);  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;&#x2F;&#x2F; key not found.
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Here the code is in its original Java from the article. I&#x27;ve rewritten it in Rust because I wanted to try fuzzing &#x2F; property testing in Rust&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#2&quot;&gt;2&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;Rust&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-Rust &quot;&gt;&lt;code class=&quot;language-Rust&quot; data-lang=&quot;Rust&quot;&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;pub fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;binary_search&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;needle&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;haystack&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;amp;&lt;&#x2F;span&gt;&lt;span&gt;Vec&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;) -&amp;gt; Option&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;usize&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let mut&lt;&#x2F;span&gt;&lt;span&gt; low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let mut&lt;&#x2F;span&gt;&lt;span&gt; high &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; haystack.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span&gt;() &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;while&lt;&#x2F;span&gt;&lt;span&gt; low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;lt;=&lt;&#x2F;span&gt;&lt;span&gt; high {
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span&gt;(low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span&gt; high) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&#x2F; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; mid_val &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; haystack[mid];
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;if&lt;&#x2F;span&gt;&lt;span&gt; mid_val &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;lt;&lt;&#x2F;span&gt;&lt;span&gt; needle {
+&lt;&#x2F;span&gt;&lt;span&gt;            low &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;        } &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;else if&lt;&#x2F;span&gt;&lt;span&gt; mid_val &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;gt;&lt;&#x2F;span&gt;&lt;span&gt; needle {
+&lt;&#x2F;span&gt;&lt;span&gt;            high &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; mid &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;        } &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;else &lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;Some(mid);
+&lt;&#x2F;span&gt;&lt;span&gt;        }
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;None;
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;I&#x27;ve modified the signature for simplicity. In the original Java &lt;code&gt;binarySearch&lt;&#x2F;code&gt;, a failure to find the item returns a negative insertion index, the index where the item would be inserted into the list. I&#x27;ve replaced that with an &lt;code&gt;Option&lt;&#x2F;code&gt; type which makes the failure clearer, although it removes some information. In the Rust standard library, they return the insertion index with a &lt;code&gt;Result&lt;&#x2F;code&gt; type.&lt;&#x2F;p&gt;
+&lt;p&gt;Now something I didn&#x27;t realize immediately while translating this code manually: in the Java code, low and high are &lt;code&gt;int&lt;&#x2F;code&gt;s (32-bit), while in Rust, they are &lt;code&gt;usize&lt;&#x2F;code&gt; (pointer-sized unsigned int). This leads to some issues since the implementation assumes that high can be negative in the case of an empty list. -- This is where proptest and cargo-fuzz come in!&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;proptest&quot;&gt;proptest&lt;&#x2F;h2&gt;
+&lt;pre data-lang=&quot;Rust&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-Rust &quot;&gt;&lt;code class=&quot;language-Rust&quot; data-lang=&quot;Rust&quot;&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;use &lt;&#x2F;span&gt;&lt;span&gt;proptest::prelude::&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;*&lt;&#x2F;span&gt;&lt;span&gt;;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;#[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;allow&lt;&#x2F;span&gt;&lt;span&gt;(dead_code)]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;needle_and_haystack&lt;&#x2F;span&gt;&lt;span&gt;() -&amp;gt; impl Strategy&amp;lt;Value = (&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;, Vec&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;)&amp;gt; {
+&lt;&#x2F;span&gt;&lt;span&gt;    (
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;..&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;100&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;        proptest::collection::vec(prop::num::i32::&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;ANY&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;..&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;100&lt;&#x2F;span&gt;&lt;span&gt;),
+&lt;&#x2F;span&gt;&lt;span&gt;    )
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;proptest! {
+&lt;&#x2F;span&gt;&lt;span&gt;    #[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;test&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;fn &lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;proptest_binary_search&lt;&#x2F;span&gt;&lt;span&gt;((&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;needle&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;mut haystack&lt;&#x2F;span&gt;&lt;span&gt;) in needle_and_haystack()) {
+&lt;&#x2F;span&gt;&lt;span&gt;        haystack.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;sort_unstable&lt;&#x2F;span&gt;&lt;span&gt;();
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; result &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;binary_search&lt;&#x2F;span&gt;&lt;span&gt;(needle, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;amp;&lt;&#x2F;span&gt;&lt;span&gt;haystack);
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;match&lt;&#x2F;span&gt;&lt;span&gt; result {
+&lt;&#x2F;span&gt;&lt;span&gt;            Some(index) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&amp;gt; &lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;                prop_assert_eq!(haystack[index], needle);
+&lt;&#x2F;span&gt;&lt;span&gt;            },
+&lt;&#x2F;span&gt;&lt;span&gt;            None &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&amp;gt; &lt;&#x2F;span&gt;&lt;span&gt;{
+&lt;&#x2F;span&gt;&lt;span&gt;                prop_assert!(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;!&lt;&#x2F;span&gt;&lt;span&gt;haystack.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;contains&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;amp;&lt;&#x2F;span&gt;&lt;span&gt;needle));
+&lt;&#x2F;span&gt;&lt;span&gt;            }
+&lt;&#x2F;span&gt;&lt;span&gt;        }
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;}
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;proptest is a property-testing framework for Rust which automatically shrinks failing test cases.&lt;&#x2F;p&gt;
+&lt;p&gt;Here is the result of running the proptest:&lt;&#x2F;p&gt;
+&lt;pre style=&quot;background-color:#fafafa;color:#383a42;&quot;&gt;&lt;code&gt;&lt;span&gt;thread &amp;#39;proptest_binary_search&amp;#39; (95480) panicked at src&#x2F;main.rs:36:1:
+&lt;&#x2F;span&gt;&lt;span&gt;Test failed: attempt to subtract with overflow.
+&lt;&#x2F;span&gt;&lt;span&gt;minimal failing input: (needle, mut haystack) = (
+&lt;&#x2F;span&gt;&lt;span&gt;    0,
+&lt;&#x2F;span&gt;&lt;span&gt;    [],
+&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;It correctly found that an empty list is an error since high is now a usize!&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;cargo-fuzz&quot;&gt;cargo-fuzz&lt;&#x2F;h2&gt;
+&lt;pre data-lang=&quot;Rust&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-Rust &quot;&gt;&lt;code class=&quot;language-Rust&quot; data-lang=&quot;Rust&quot;&gt;&lt;span&gt;#![&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;no_main&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;use &lt;&#x2F;span&gt;&lt;span&gt;fuzz_binary_search::binary_search;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;use &lt;&#x2F;span&gt;&lt;span&gt;libfuzzer_sys::fuzz_target;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;fuzz_target!(|&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;input&lt;&#x2F;span&gt;&lt;span&gt;: (&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;, Vec&amp;lt;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;i32&lt;&#x2F;span&gt;&lt;span&gt;&amp;gt;)| {
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let &lt;&#x2F;span&gt;&lt;span&gt;(needle, haystack) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&lt;&#x2F;span&gt;&lt;span&gt; input;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;let&lt;&#x2F;span&gt;&lt;span&gt; result &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;binary_search&lt;&#x2F;span&gt;&lt;span&gt;(needle, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;amp;&lt;&#x2F;span&gt;&lt;span&gt;haystack);
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;match&lt;&#x2F;span&gt;&lt;span&gt; result {
+&lt;&#x2F;span&gt;&lt;span&gt;        Some(idx) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&amp;gt; &lt;&#x2F;span&gt;&lt;span&gt;assert_eq!(haystack[idx], needle),
+&lt;&#x2F;span&gt;&lt;span&gt;        None &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;=&amp;gt; &lt;&#x2F;span&gt;&lt;span&gt;assert!(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;!&lt;&#x2F;span&gt;&lt;span&gt;haystack.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;contains&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;&amp;amp;&lt;&#x2F;span&gt;&lt;span&gt;needle)),
+&lt;&#x2F;span&gt;&lt;span&gt;    }
+&lt;&#x2F;span&gt;&lt;span&gt;});
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;cargo-fuzz, which uses LLVM&#x27;s libfuzzer under the hood, is also able to find several errors with this implementation which has been shoddily translated.&lt;&#x2F;p&gt;
+&lt;p&gt;P.S. wanna get your LSP to work in the &lt;code&gt;fuzz&#x2F;&lt;&#x2F;code&gt; directory that cargo-fuzz uses? You need to add this to your Cargo.toml.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;toml&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-toml &quot;&gt;&lt;code class=&quot;language-toml&quot; data-lang=&quot;toml&quot;&gt;&lt;span&gt;[workspace]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;members &lt;&#x2F;span&gt;&lt;span&gt;= [
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;.&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;,
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;fuzz&amp;quot;
+&lt;&#x2F;span&gt;&lt;span&gt;]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;h2 id=&quot;some-remarks&quot;&gt;Some remarks&lt;&#x2F;h2&gt;
+&lt;p&gt;Although proptest felt a little more clunky when defining input constraints, this does help speed up the search through guidance.&lt;&#x2F;p&gt;
+&lt;p&gt;Something that I didn&#x27;t expect but had fun learning was that actually reproducing this bug from 2006 in Rust would have led me to write some quite awkward Rust&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#3&quot;&gt;3&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;! This is exactly what I want from a programming language. I want to be nudged in the correct direction. Rust makes it difficult to &quot;hold it wrong.&quot; Modern programming languages really ought to be &lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Poka-yoke&quot;&gt;poka-yoke&lt;&#x2F;a&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;This was just an excuse to play around with fuzz testing and it works remarkably well for the amount of effort it takes. I think that if you are writing some data structure or some non-trivial transformation, there&#x27;s really no reason not to fuzz your program. Fuzzing is of course no cure-all, but it is easy enough to setup that you don&#x27;t really have an excuse not to try it!&lt;&#x2F;p&gt;
+&lt;p&gt;I&#x27;ve made a git repo for these little experiments so if you want to see the complete code for any of these examples, here: &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;prydt&#x2F;etudes&#x2F;tree&#x2F;main&#x2F;fuzz-binary-search&quot;&gt;https:&#x2F;&#x2F;github.com&#x2F;prydt&#x2F;etudes&#x2F;tree&#x2F;main&#x2F;fuzz-binary-search&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;further-reading&quot;&gt;Further reading&lt;&#x2F;h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;proptest-rs.github.io&#x2F;proptest&#x2F;&quot;&gt;The Proptest Book&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;rust-fuzz.github.io&#x2F;book&#x2F;introduction.html&quot;&gt;The Rust Fuzz Book&lt;&#x2F;a&gt;, covering cargo-fuzz and AFL&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;lcamtuf.blogspot.com&#x2F;2014&#x2F;11&#x2F;pulling-jpegs-out-of-thin-air.html&quot;&gt;Pulling JPEGs out of thin air&lt;&#x2F;a&gt;, a really neat example of the powers of fuzzing&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h3 id=&quot;footnotes&quot;&gt;Footnotes&lt;&#x2F;h3&gt;
+&lt;div class=&quot;footnote-definition&quot; id=&quot;1&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;1&lt;&#x2F;sup&gt;
+&lt;p&gt;proptest is actually a library for property testing which is slightly different from fuzzing. Property testing has more guidance from the programmer for how the inputs are generated, while fuzzing tends to be more black-box.&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div class=&quot;footnote-definition&quot; id=&quot;2&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;2&lt;&#x2F;sup&gt;
+&lt;p&gt;Why for real? -- For fun!&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;div class=&quot;footnote-definition&quot; id=&quot;3&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;3&lt;&#x2F;sup&gt;
+&lt;p&gt;I would have needed to intentionally cast low, high into &lt;code&gt;i32&lt;&#x2F;code&gt; and then cast back into &lt;code&gt;usize&lt;&#x2F;code&gt; for indexing.&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+</content>
+        
+    </entry>
     <entry xml:lang="en">
         <title>another day, another blog</title>
         <published>2025-09-17T00:00:00+00:00</published>

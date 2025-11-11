@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt's site</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <h1>prydt's site</h1>
+            <nav>
+                <a href="/">home</a>
+                <a href="/blog">blog</a>
+                <a href="atom.xml">feed</a>
+            </nav>
+        </header>
+
+        <section class="content">
+            
+<h1 class="title">Fuzzing Binary Search</h1>
+<hr>
+
+<p>
+    Posted: <strong>2025-11-10</strong>
+</p>
+<p>
+    Last updated: <strong></strong>
+</p>
+
+<p>Author: Pranoy Dutta</p>
+
+<hr>
+
+<p>Something close to a holy grail for me in programming is an automated test generator.</p>
+<p>Given some function, I would love to be able to throw my code at another program which probes my function and tries all the weird edge cases that I am sure to forget when writing unit tests or defensive asserts. Writing tests manually? That's boring! And oftentimes when something is boring, getting a computer to do it is a solution.</p>
+<h2 id="symbolic-execution-klee">Symbolic Execution (Klee)</h2>
+<p>At first, I wanted to try out symbolic execution with <a href="https://klee-se.org">Klee</a>. Klee is a symbolic execution engine for LLVM which runs programs with symbolic values for the variables, which allows it to effectively simulate running the program on all possible inputs at once! This is extremely cool, although you can probably already guess that this can be quite computationally expensive, even with Klee being extremely clever. But for constrained enough tasks, this absolutely fits my defintiion of a holy grail. The issue is that I wanted to try this with Rust, and it looks like <a href="https://www.unwoundstack.com/blog/klee-and-rust.html">using Klee with Rust is not currently well supported</a>.</p>
+<p>Alright... well maybe I'll try to get that working sometime later, but for now let's try something else. Fuzzing!</p>
+<h2 id="fuzzing">Fuzzing</h2>
+<p>Fuzzing is a technique for finding interesting test cases using randomized inputs. While this by itself is not too ground-breaking, more sophisticated fuzzers like American Fuzzy Lop (AFL) use techniques for directing the random input to maximize code coverage of the test cases. This allows fuzzers to try to take every path within your code and weasel their way into control-flow states you might not have expected.</p>
+<p>For my very basic trial of fuzzing, I will be using two libraries: <a href="https://github.com/proptest-rs/proptest">proptest</a><sup class="footnote-reference"><a href="#1">1</a></sup> and <a href="https://github.com/rust-fuzz/cargo-fuzz">cargo-fuzz (libfuzzer)</a>.</p>
+<h2 id="the-problem">The problem</h2>
+<p>I want to test these libraries on a small but important well-known bug: <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/">integer overflow in binary search</a>.</p>
+<pre data-lang="Java" style="background-color:#fafafa;color:#383a42;" class="language-Java "><code class="language-Java" data-lang="Java"><span style="color:#a626a4;">public static int </span><span style="color:#e45649;">binarySearch</span><span>(</span><span style="color:#a626a4;">int[]</span><span> a, </span><span style="color:#a626a4;">int</span><span> key) {
+</span><span>        </span><span style="color:#a626a4;">int</span><span> low </span><span style="color:#a626a4;">= </span><span style="color:#c18401;">0</span><span>;
+</span><span>        </span><span style="color:#a626a4;">int</span><span> high </span><span style="color:#a626a4;">=</span><span> a.length </span><span style="color:#a626a4;">- </span><span style="color:#c18401;">1</span><span>;
+</span><span>
+</span><span>        </span><span style="color:#a626a4;">while </span><span>(low </span><span style="color:#a626a4;">&lt;=</span><span> high) {
+</span><span>            </span><span style="color:#a626a4;">int</span><span> mid </span><span style="color:#a626a4;">= </span><span>(low </span><span style="color:#a626a4;">+</span><span> high) </span><span style="color:#a626a4;">/ </span><span style="color:#c18401;">2</span><span>; </span><span style="color:#a0a1a7;">// BUG: low + high can overflow
+</span><span>            </span><span style="color:#a626a4;">int</span><span> midVal </span><span style="color:#a626a4;">=</span><span> a[mid];
+</span><span>
+</span><span>            </span><span style="color:#a626a4;">if </span><span>(midVal </span><span style="color:#a626a4;">&lt;</span><span> key)
+</span><span>                low </span><span style="color:#a626a4;">=</span><span> mid </span><span style="color:#a626a4;">+ </span><span style="color:#c18401;">1</span><span>;
+</span><span>            </span><span style="color:#a626a4;">else if </span><span>(midVal </span><span style="color:#a626a4;">&gt;</span><span> key)
+</span><span>                high </span><span style="color:#a626a4;">=</span><span> mid </span><span style="color:#a626a4;">- </span><span style="color:#c18401;">1</span><span>;
+</span><span>            </span><span style="color:#a626a4;">else
+</span><span>                </span><span style="color:#a626a4;">return</span><span> mid; </span><span style="color:#a0a1a7;">// key found
+</span><span>        }
+</span><span>        </span><span style="color:#a626a4;">return -</span><span>(low </span><span style="color:#a626a4;">+ </span><span style="color:#c18401;">1</span><span>);  </span><span style="color:#a0a1a7;">// key not found.
+</span><span>    }
+</span></code></pre>
+<p>Here the code is in its original Java from the article. I've rewritten it in Rust because I wanted to try fuzzing / property testing in Rust<sup class="footnote-reference"><a href="#2">2</a></sup>.</p>
+<pre data-lang="Rust" style="background-color:#fafafa;color:#383a42;" class="language-Rust "><code class="language-Rust" data-lang="Rust"><span style="color:#a626a4;">pub fn </span><span style="color:#0184bc;">binary_search</span><span>(</span><span style="color:#e45649;">needle</span><span>: </span><span style="color:#a626a4;">i32</span><span>, </span><span style="color:#e45649;">haystack</span><span>: </span><span style="color:#a626a4;">&amp;</span><span>Vec&lt;</span><span style="color:#a626a4;">i32</span><span>&gt;) -&gt; Option&lt;</span><span style="color:#a626a4;">usize</span><span>&gt; {
+</span><span>    </span><span style="color:#a626a4;">let mut</span><span> low </span><span style="color:#a626a4;">= </span><span style="color:#c18401;">0</span><span>;
+</span><span>    </span><span style="color:#a626a4;">let mut</span><span> high </span><span style="color:#a626a4;">=</span><span> haystack.</span><span style="color:#0184bc;">len</span><span>() </span><span style="color:#a626a4;">- </span><span style="color:#c18401;">1</span><span>;
+</span><span>
+</span><span>    </span><span style="color:#a626a4;">while</span><span> low </span><span style="color:#a626a4;">&lt;=</span><span> high {
+</span><span>        </span><span style="color:#a626a4;">let</span><span> mid </span><span style="color:#a626a4;">= </span><span>(low </span><span style="color:#a626a4;">+</span><span> high) </span><span style="color:#a626a4;">/ </span><span style="color:#c18401;">2</span><span>;
+</span><span>        </span><span style="color:#a626a4;">let</span><span> mid_val </span><span style="color:#a626a4;">=</span><span> haystack[mid];
+</span><span>
+</span><span>        </span><span style="color:#a626a4;">if</span><span> mid_val </span><span style="color:#a626a4;">&lt;</span><span> needle {
+</span><span>            low </span><span style="color:#a626a4;">=</span><span> mid </span><span style="color:#a626a4;">+ </span><span style="color:#c18401;">1</span><span>;
+</span><span>        } </span><span style="color:#a626a4;">else if</span><span> mid_val </span><span style="color:#a626a4;">&gt;</span><span> needle {
+</span><span>            high </span><span style="color:#a626a4;">=</span><span> mid </span><span style="color:#a626a4;">- </span><span style="color:#c18401;">1</span><span>;
+</span><span>        } </span><span style="color:#a626a4;">else </span><span>{
+</span><span>            </span><span style="color:#a626a4;">return </span><span>Some(mid);
+</span><span>        }
+</span><span>    }
+</span><span>    </span><span style="color:#a626a4;">return </span><span>None;
+</span><span>}
+</span></code></pre>
+<p>I've modified the signature for simplicity. In the original Java <code>binarySearch</code>, a failure to find the item returns a negative insertion index, the index where the item would be inserted into the list. I've replaced that with an <code>Option</code> type which makes the failure clearer, although it removes some information. In the Rust standard library, they return the insertion index with a <code>Result</code> type.</p>
+<p>Now something I didn't realize immediately while translating this code manually: in the Java code, low and high are <code>int</code>s (32-bit), while in Rust, they are <code>usize</code> (pointer-sized unsigned int). This leads to some issues since the implementation assumes that high can be negative in the case of an empty list. -- This is where proptest and cargo-fuzz come in!</p>
+<h2 id="proptest">proptest</h2>
+<pre data-lang="Rust" style="background-color:#fafafa;color:#383a42;" class="language-Rust "><code class="language-Rust" data-lang="Rust"><span style="color:#a626a4;">use </span><span>proptest::prelude::</span><span style="color:#a626a4;">*</span><span>;
+</span><span>
+</span><span>#[</span><span style="color:#e45649;">allow</span><span>(dead_code)]
+</span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">needle_and_haystack</span><span>() -&gt; impl Strategy&lt;Value = (</span><span style="color:#a626a4;">i32</span><span>, Vec&lt;</span><span style="color:#a626a4;">i32</span><span>&gt;)&gt; {
+</span><span>    (
+</span><span>        </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">..</span><span style="color:#c18401;">100</span><span style="color:#a626a4;">i32</span><span>,
+</span><span>        proptest::collection::vec(prop::num::i32::</span><span style="color:#c18401;">ANY</span><span>, </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">..</span><span style="color:#c18401;">100</span><span>),
+</span><span>    )
+</span><span>}
+</span><span>
+</span><span>proptest! {
+</span><span>    #[</span><span style="color:#e45649;">test</span><span>]
+</span><span>    </span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">proptest_binary_search</span><span>((</span><span style="color:#e45649;">needle</span><span>, </span><span style="color:#e45649;">mut haystack</span><span>) in needle_and_haystack()) {
+</span><span>        haystack.</span><span style="color:#0184bc;">sort_unstable</span><span>();
+</span><span>        </span><span style="color:#a626a4;">let</span><span> result </span><span style="color:#a626a4;">= </span><span style="color:#0184bc;">binary_search</span><span>(needle, </span><span style="color:#a626a4;">&amp;</span><span>haystack);
+</span><span>
+</span><span>        </span><span style="color:#a626a4;">match</span><span> result {
+</span><span>            Some(index) </span><span style="color:#a626a4;">=&gt; </span><span>{
+</span><span>                prop_assert_eq!(haystack[index], needle);
+</span><span>            },
+</span><span>            None </span><span style="color:#a626a4;">=&gt; </span><span>{
+</span><span>                prop_assert!(</span><span style="color:#a626a4;">!</span><span>haystack.</span><span style="color:#0184bc;">contains</span><span>(</span><span style="color:#a626a4;">&amp;</span><span>needle));
+</span><span>            }
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>proptest is a property-testing framework for Rust which automatically shrinks failing test cases.</p>
+<p>Here is the result of running the proptest:</p>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span>thread &#39;proptest_binary_search&#39; (95480) panicked at src/main.rs:36:1:
+</span><span>Test failed: attempt to subtract with overflow.
+</span><span>minimal failing input: (needle, mut haystack) = (
+</span><span>    0,
+</span><span>    [],
+</span><span>)
+</span></code></pre>
+<p>It correctly found that an empty list is an error since high is now a usize!</p>
+<h2 id="cargo-fuzz">cargo-fuzz</h2>
+<pre data-lang="Rust" style="background-color:#fafafa;color:#383a42;" class="language-Rust "><code class="language-Rust" data-lang="Rust"><span>#![</span><span style="color:#e45649;">no_main</span><span>]
+</span><span>
+</span><span style="color:#a626a4;">use </span><span>fuzz_binary_search::binary_search;
+</span><span style="color:#a626a4;">use </span><span>libfuzzer_sys::fuzz_target;
+</span><span>
+</span><span>fuzz_target!(|</span><span style="color:#e45649;">input</span><span>: (</span><span style="color:#a626a4;">i32</span><span>, Vec&lt;</span><span style="color:#a626a4;">i32</span><span>&gt;)| {
+</span><span>    </span><span style="color:#a626a4;">let </span><span>(needle, haystack) </span><span style="color:#a626a4;">=</span><span> input;
+</span><span>    </span><span style="color:#a626a4;">let</span><span> result </span><span style="color:#a626a4;">= </span><span style="color:#0184bc;">binary_search</span><span>(needle, </span><span style="color:#a626a4;">&amp;</span><span>haystack);
+</span><span>    </span><span style="color:#a626a4;">match</span><span> result {
+</span><span>        Some(idx) </span><span style="color:#a626a4;">=&gt; </span><span>assert_eq!(haystack[idx], needle),
+</span><span>        None </span><span style="color:#a626a4;">=&gt; </span><span>assert!(</span><span style="color:#a626a4;">!</span><span>haystack.</span><span style="color:#0184bc;">contains</span><span>(</span><span style="color:#a626a4;">&amp;</span><span>needle)),
+</span><span>    }
+</span><span>});
+</span></code></pre>
+<p>cargo-fuzz, which uses LLVM's libfuzzer under the hood, is also able to find several errors with this implementation which has been shoddily translated.</p>
+<p>P.S. wanna get your LSP to work in the <code>fuzz/</code> directory that cargo-fuzz uses? You need to add this to your Cargo.toml.</p>
+<pre data-lang="toml" style="background-color:#fafafa;color:#383a42;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[workspace]
+</span><span style="color:#e45649;">members </span><span>= [
+</span><span>  </span><span style="color:#50a14f;">&quot;.&quot;</span><span>,
+</span><span>  </span><span style="color:#50a14f;">&quot;fuzz&quot;
+</span><span>]
+</span></code></pre>
+<h2 id="some-remarks">Some remarks</h2>
+<p>Although proptest felt a little more clunky when defining input constraints, this does help speed up the search through guidance.</p>
+<p>Something that I didn't expect but had fun learning was that actually reproducing this bug from 2006 in Rust would have led me to write some quite awkward Rust<sup class="footnote-reference"><a href="#3">3</a></sup>! This is exactly what I want from a programming language. I want to be nudged in the correct direction. Rust makes it difficult to "hold it wrong." Modern programming languages really ought to be <a href="https://en.wikipedia.org/wiki/Poka-yoke">poka-yoke</a>.</p>
+<p>This was just an excuse to play around with fuzz testing and it works remarkably well for the amount of effort it takes. I think that if you are writing some data structure or some non-trivial transformation, there's really no reason not to fuzz your program. Fuzzing is of course no cure-all, but it is easy enough to setup that you don't really have an excuse not to try it!</p>
+<p>I've made a git repo for these little experiments so if you want to see the complete code for any of these examples, here: <a href="https://github.com/prydt/etudes/tree/main/fuzz-binary-search">https://github.com/prydt/etudes/tree/main/fuzz-binary-search</a></p>
+<h2 id="further-reading">Further reading</h2>
+<ul>
+<li><a href="https://proptest-rs.github.io/proptest/">The Proptest Book</a></li>
+<li><a href="https://rust-fuzz.github.io/book/introduction.html">The Rust Fuzz Book</a>, covering cargo-fuzz and AFL</li>
+<li><a href="https://lcamtuf.blogspot.com/2014/11/pulling-jpegs-out-of-thin-air.html">Pulling JPEGs out of thin air</a>, a really neat example of the powers of fuzzing</li>
+</ul>
+<h3 id="footnotes">Footnotes</h3>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>proptest is actually a library for property testing which is slightly different from fuzzing. Property testing has more guidance from the programmer for how the inputs are generated, while fuzzing tends to be more black-box.</p>
+</div>
+<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
+<p>Why for real? -- For fun!</p>
+</div>
+<div class="footnote-definition" id="3"><sup class="footnote-definition-label">3</sup>
+<p>I would have needed to intentionally cast low, high into <code>i32</code> and then cast back into <code>usize</code> for indexing.</p>
+</div>
+
+
+<!-- - Pranoy Dutta -->
+
+
+        </section>
+
+        <footer>
+            <!-- TODO -->
+        </footer>
+    </main>
+
+</body>
+
+</html>

@@ -10,4 +10,8 @@
         <loc>https://prydt.xyz/blog/first-post/</loc>
         <lastmod>2025-10-19</lastmod>
     </url>
+    <url>
+        <loc>https://prydt.xyz/blog/fuzzing-binary-search/</loc>
+        <lastmod>2025-11-10</lastmod>
+    </url>
 </urlset>
