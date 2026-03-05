@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt's site</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <h1>prydt's site</h1>
+            <nav>
+                <a href="/">home</a>
+                <a href="/blog">blog</a>
+                <a href="atom.xml">feed</a>
+            </nav>
+        </header>
+
+        <section class="content">
+            
+<h1 class="title">Configuration Languages Should be Strongly Typed</h1>
+<hr>
+
+<p>
+    Posted: <strong>2026-03-05</strong>
+</p>
+
+
+<p>Author: Pranoy Dutta</p>
+
+<hr>
+
+<p>Nothing in an undergraduate education in computer science prepared me for the amount of YAML I would have to stare at as a software engineer. Whether its to configure k8s, docker, CI, my eyes start to glaze over. The indentation guides on my favorite hipster IDE blend together as I try to figure out whether the snippet of config I copy-and-pasted from another codebase is correctly aligned.</p>
+<p>This sucks.</p>
+<p>Much of the infastructure that powers our world is build on a foundation of oceans of JSON and mountains of YAML.</p>
+<p>I think the configuration languages we use should be more like programming languages. In specific, they should have a strong type system with the ability to effectively convey constraints, and require schemas.</p>
+<p>Here's an example.</p>
+<pre data-lang="yaml" style="background-color:#fafafa;color:#383a42;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#e45649;">server</span><span>:
+</span><span>  </span><span style="color:#e45649;">port</span><span>: </span><span style="color:#50a14f;">&quot;8080&quot;         </span><span style="color:#a0a1a7;"># string or int?
+</span><span>  </span><span style="color:#e45649;">timeout</span><span>: </span><span style="color:#c18401;">30          </span><span style="color:#a0a1a7;"># seconds? milliseconds?
+</span><span>  </span><span style="color:#e45649;">ssl</span><span>: </span><span style="color:#50a14f;">&quot;yes&quot;           </span><span style="color:#a0a1a7;"># bool? string? &quot;yes&quot;/&quot;true&quot;/1?
+</span><span>  </span><span style="color:#e45649;">max_connections</span><span>: </span><span style="color:#c18401;">-1  </span><span style="color:#a0a1a7;"># valid? sentinel for &quot;unlimited&quot;?
+</span><span>  </span><span style="color:#e45649;">log_level</span><span>: </span><span style="color:#50a14f;">&quot;verbose&quot; </span><span style="color:#a0a1a7;"># what are the valid options?
+</span><span>  </span><span style="color:#e45649;">retries</span><span>: </span><span style="color:#c18401;">3.7         </span><span style="color:#a0a1a7;"># fractional retries make no sense
+</span></code></pre>
+<p>Now while this is just a random bit of YAML I produced, we can already start to see the limitations of YAMLs types and how it is conveyed to the programmer.</p>
+<p>Let's see how we can do better using something like Zod, a TypeScript schema validation library.</p>
+<pre data-lang="typescript" style="background-color:#fafafa;color:#383a42;" class="language-typescript "><code class="language-typescript" data-lang="typescript"><span style="color:#a626a4;">const </span><span style="color:#e45649;">ServerConfig </span><span style="color:#a626a4;">= </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">object</span><span>({
+</span><span>  port: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">number</span><span>().</span><span style="color:#0184bc;">int</span><span>().</span><span style="color:#0184bc;">min</span><span>(</span><span style="color:#c18401;">1</span><span>).</span><span style="color:#0184bc;">max</span><span>(</span><span style="color:#c18401;">65535</span><span>),
+</span><span>  timeout: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">number</span><span>().</span><span style="color:#0184bc;">positive</span><span>().</span><span style="color:#0184bc;">describe</span><span>(</span><span style="color:#50a14f;">&quot;Timeout in milliseconds&quot;</span><span>),
+</span><span>  ssl: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">boolean</span><span>(),
+</span><span>  maxConnections: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">number</span><span>().</span><span style="color:#0184bc;">int</span><span>().</span><span style="color:#0184bc;">positive</span><span>().</span><span style="color:#0184bc;">or</span><span>(</span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">literal</span><span>(</span><span style="color:#c18401;">Infinity</span><span>)),
+</span><span>  logLevel: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">enum</span><span>([</span><span style="color:#50a14f;">&quot;debug&quot;</span><span>, </span><span style="color:#50a14f;">&quot;info&quot;</span><span>, </span><span style="color:#50a14f;">&quot;warn&quot;</span><span>, </span><span style="color:#50a14f;">&quot;error&quot;</span><span>]),
+</span><span>  retries: </span><span style="color:#e45649;">z</span><span>.</span><span style="color:#0184bc;">number</span><span>().</span><span style="color:#0184bc;">int</span><span>().</span><span style="color:#0184bc;">nonnegative</span><span>(),
+</span><span>});
+</span></code></pre>
+<p>This is an example of the sorts of constraints which would be really great to be able to express in a configuration language. Here, we can tell that:</p>
+<ul>
+<li>port must be within the range [1, 65535]</li>
+<li>logLevel must be one of the options instead of an arbitrary string</li>
+</ul>
+<p>and so on.</p>
+<p>Strong types let us convey constraints clearly and regardless of whether we convey it to the user, all of our programs have constraints. This is why a schema is also important. Regardless of whether we provide a schema to the user, there is always an <em>implicit schema</em>.</p>
+<p>This schema-on-read is built in to the way that our program parses (and validates... we are validating user-provided data, right?) the config file.</p>
+<p>Now take a look at this config file:</p>
+<pre data-lang="dhall" style="background-color:#fafafa;color:#383a42;" class="language-dhall "><code class="language-dhall" data-lang="dhall"><span>let LogLevel = &lt; Debug | Info | Warn | Error &gt;
+</span><span>
+</span><span>let MaxConnections = &lt; Unlimited | Limit : Natural &gt;
+</span><span>
+</span><span>let ServerConfig =
+</span><span>  { port : Natural
+</span><span>  , timeout_ms : Natural
+</span><span>  , ssl : Bool
+</span><span>  , log_level : LogLevel
+</span><span>  , max_connections : MaxConnections
+</span><span>  , retries : Natural
+</span><span>  }
+</span><span>
+</span><span>let config : ServerConfig =
+</span><span>  { port = 8080
+</span><span>  , timeout_ms = 5000
+</span><span>  , ssl = True
+</span><span>  , log_level = LogLevel.Info
+</span><span>  , max_connections = MaxConnections.Limit 100
+</span><span>  , retries = 3
+</span><span>  }
+</span><span>
+</span><span>in { server = config }
+</span></code></pre>
+<p>This is a configuration language called <a href="https://dhall-lang.org/">Dhall</a>. You can think of it like "JSON + functions + types + imports." This Dhall file actually compiles into</p>
+<pre data-lang="yaml" style="background-color:#fafafa;color:#383a42;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#e45649;">server</span><span>:
+</span><span>  </span><span style="color:#e45649;">log_level</span><span>: </span><span style="color:#50a14f;">Info
+</span><span>  </span><span style="color:#e45649;">max_connections</span><span>: </span><span style="color:#c18401;">100
+</span><span>  </span><span style="color:#e45649;">port</span><span>: </span><span style="color:#c18401;">8080
+</span><span>  </span><span style="color:#e45649;">retries</span><span>: </span><span style="color:#c18401;">3
+</span><span>  </span><span style="color:#e45649;">ssl</span><span>: </span><span style="color:#c18401;">true
+</span><span>  </span><span style="color:#e45649;">timeout_ms</span><span>: </span><span style="color:#c18401;">5000
+</span></code></pre>
+<p>but it is so much clearer.</p>
+<p>To conclude, types and schemas are really our best friends for dealing with all sorts of problems we can run into when writing configuration state in brittle formats such as JSON or YAML.</p>
+<p>There are many other interesting higher level configuration languages to try like Dhall, Apple's <a href="https://pkl-lang.org/index.html">Pkl</a>, and Google's <a href="https://starlark-lang.org/">Starlark</a>. If jumping in the deep end is impractical, even just combining an existing JSON config file with a <a href="https://json-schema.org/learn/getting-started-step-by-step">JSON Schema</a> is a great first step, and provides real benefits.</p>
+<p>-- prydt</p>
+<h2 id="further-reading">Further reading</h2>
+<ul>
+<li><a href="https://beza1e1.tuxen.de/config_levels.html">https://beza1e1.tuxen.de/config_levels.html</a></li>
+<li><a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/</a></li>
+</ul>
+
+
+<!-- - Pranoy Dutta -->
+
+
+        </section>
+
+        <footer>
+            <!-- TODO -->
+        </footer>
+    </main>
+
+</body>
+
+</html>

@@ -4,8 +4,102 @@
     <link rel="self" type="application/atom+xml" href="https://prydt.xyz/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://prydt.xyz"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-01-08T00:00:00+00:00</updated>
+    <updated>2026-03-05T00:00:00+00:00</updated>
     <id>https://prydt.xyz/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Configuration Languages Should be Strongly Typed</title>
+        <published>2026-03-05T00:00:00+00:00</published>
+        <updated>2026-03-05T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Pranoy Dutta
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/config-languages-strong-typing/"/>
+        <id>https://prydt.xyz/blog/config-languages-strong-typing/</id>
+        
+        <content type="html" xml:base="https://prydt.xyz/blog/config-languages-strong-typing/">&lt;p&gt;Nothing in an undergraduate education in computer science prepared me for the amount of YAML I would have to stare at as a software engineer. Whether its to configure k8s, docker, CI, my eyes start to glaze over. The indentation guides on my favorite hipster IDE blend together as I try to figure out whether the snippet of config I copy-and-pasted from another codebase is correctly aligned.&lt;&#x2F;p&gt;
+&lt;p&gt;This sucks.&lt;&#x2F;p&gt;
+&lt;p&gt;Much of the infastructure that powers our world is build on a foundation of oceans of JSON and mountains of YAML.&lt;&#x2F;p&gt;
+&lt;p&gt;I think the configuration languages we use should be more like programming languages. In specific, they should have a strong type system with the ability to effectively convey constraints, and require schemas.&lt;&#x2F;p&gt;
+&lt;p&gt;Here&#x27;s an example.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;server&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;port&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;8080&amp;quot;         &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# string or int?
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;timeout&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;30          &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# seconds? milliseconds?
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;ssl&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;yes&amp;quot;           &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# bool? string? &amp;quot;yes&amp;quot;&#x2F;&amp;quot;true&amp;quot;&#x2F;1?
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;max_connections&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;-1  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# valid? sentinel for &amp;quot;unlimited&amp;quot;?
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;log_level&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;verbose&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# what are the valid options?
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;retries&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;3.7         &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a0a1a7;&quot;&gt;# fractional retries make no sense
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;Now while this is just a random bit of YAML I produced, we can already start to see the limitations of YAMLs types and how it is conveyed to the programmer.&lt;&#x2F;p&gt;
+&lt;p&gt;Let&#x27;s see how we can do better using something like Zod, a TypeScript schema validation library.&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;typescript&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-typescript &quot;&gt;&lt;code class=&quot;language-typescript&quot; data-lang=&quot;typescript&quot;&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;const &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;ServerConfig &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a626a4;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;object&lt;&#x2F;span&gt;&lt;span&gt;({
+&lt;&#x2F;span&gt;&lt;span&gt;  port: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;number&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;min&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span&gt;).&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;max&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;65535&lt;&#x2F;span&gt;&lt;span&gt;),
+&lt;&#x2F;span&gt;&lt;span&gt;  timeout: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;number&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;positive&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;describe&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;Timeout in milliseconds&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;),
+&lt;&#x2F;span&gt;&lt;span&gt;  ssl: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;boolean&lt;&#x2F;span&gt;&lt;span&gt;(),
+&lt;&#x2F;span&gt;&lt;span&gt;  maxConnections: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;number&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;positive&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;or&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;literal&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;Infinity&lt;&#x2F;span&gt;&lt;span&gt;)),
+&lt;&#x2F;span&gt;&lt;span&gt;  logLevel: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;enum&lt;&#x2F;span&gt;&lt;span&gt;([&lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;debug&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;info&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;warn&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;&amp;quot;error&amp;quot;&lt;&#x2F;span&gt;&lt;span&gt;]),
+&lt;&#x2F;span&gt;&lt;span&gt;  retries: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;z&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;number&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;int&lt;&#x2F;span&gt;&lt;span&gt;().&lt;&#x2F;span&gt;&lt;span style=&quot;color:#0184bc;&quot;&gt;nonnegative&lt;&#x2F;span&gt;&lt;span&gt;(),
+&lt;&#x2F;span&gt;&lt;span&gt;});
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;This is an example of the sorts of constraints which would be really great to be able to express in a configuration language. Here, we can tell that:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;port must be within the range [1, 65535]&lt;&#x2F;li&gt;
+&lt;li&gt;logLevel must be one of the options instead of an arbitrary string&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;p&gt;and so on.&lt;&#x2F;p&gt;
+&lt;p&gt;Strong types let us convey constraints clearly and regardless of whether we convey it to the user, all of our programs have constraints. This is why a schema is also important. Regardless of whether we provide a schema to the user, there is always an &lt;em&gt;implicit schema&lt;&#x2F;em&gt;.&lt;&#x2F;p&gt;
+&lt;p&gt;This schema-on-read is built in to the way that our program parses (and validates... we are validating user-provided data, right?) the config file.&lt;&#x2F;p&gt;
+&lt;p&gt;Now take a look at this config file:&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;dhall&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-dhall &quot;&gt;&lt;code class=&quot;language-dhall&quot; data-lang=&quot;dhall&quot;&gt;&lt;span&gt;let LogLevel = &amp;lt; Debug | Info | Warn | Error &amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;let MaxConnections = &amp;lt; Unlimited | Limit : Natural &amp;gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;let ServerConfig =
+&lt;&#x2F;span&gt;&lt;span&gt;  { port : Natural
+&lt;&#x2F;span&gt;&lt;span&gt;  , timeout_ms : Natural
+&lt;&#x2F;span&gt;&lt;span&gt;  , ssl : Bool
+&lt;&#x2F;span&gt;&lt;span&gt;  , log_level : LogLevel
+&lt;&#x2F;span&gt;&lt;span&gt;  , max_connections : MaxConnections
+&lt;&#x2F;span&gt;&lt;span&gt;  , retries : Natural
+&lt;&#x2F;span&gt;&lt;span&gt;  }
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;let config : ServerConfig =
+&lt;&#x2F;span&gt;&lt;span&gt;  { port = 8080
+&lt;&#x2F;span&gt;&lt;span&gt;  , timeout_ms = 5000
+&lt;&#x2F;span&gt;&lt;span&gt;  , ssl = True
+&lt;&#x2F;span&gt;&lt;span&gt;  , log_level = LogLevel.Info
+&lt;&#x2F;span&gt;&lt;span&gt;  , max_connections = MaxConnections.Limit 100
+&lt;&#x2F;span&gt;&lt;span&gt;  , retries = 3
+&lt;&#x2F;span&gt;&lt;span&gt;  }
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;in { server = config }
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;This is a configuration language called &lt;a href=&quot;https:&#x2F;&#x2F;dhall-lang.org&#x2F;&quot;&gt;Dhall&lt;&#x2F;a&gt;. You can think of it like &quot;JSON + functions + types + imports.&quot; This Dhall file actually compiles into&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;yaml&quot; style=&quot;background-color:#fafafa;color:#383a42;&quot; class=&quot;language-yaml &quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;server&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;log_level&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#50a14f;&quot;&gt;Info
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;max_connections&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;100
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;port&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;8080
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;retries&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;3
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;ssl&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;true
+&lt;&#x2F;span&gt;&lt;span&gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e45649;&quot;&gt;timeout_ms&lt;&#x2F;span&gt;&lt;span&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c18401;&quot;&gt;5000
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;but it is so much clearer.&lt;&#x2F;p&gt;
+&lt;p&gt;To conclude, types and schemas are really our best friends for dealing with all sorts of problems we can run into when writing configuration state in brittle formats such as JSON or YAML.&lt;&#x2F;p&gt;
+&lt;p&gt;There are many other interesting higher level configuration languages to try like Dhall, Apple&#x27;s &lt;a href=&quot;https:&#x2F;&#x2F;pkl-lang.org&#x2F;index.html&quot;&gt;Pkl&lt;&#x2F;a&gt;, and Google&#x27;s &lt;a href=&quot;https:&#x2F;&#x2F;starlark-lang.org&#x2F;&quot;&gt;Starlark&lt;&#x2F;a&gt;. If jumping in the deep end is impractical, even just combining an existing JSON config file with a &lt;a href=&quot;https:&#x2F;&#x2F;json-schema.org&#x2F;learn&#x2F;getting-started-step-by-step&quot;&gt;JSON Schema&lt;&#x2F;a&gt; is a great first step, and provides real benefits.&lt;&#x2F;p&gt;
+&lt;p&gt;-- prydt&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;further-reading&quot;&gt;Further reading&lt;&#x2F;h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;beza1e1.tuxen.de&#x2F;config_levels.html&quot;&gt;https:&#x2F;&#x2F;beza1e1.tuxen.de&#x2F;config_levels.html&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;&lt;a href=&quot;https:&#x2F;&#x2F;lexi-lambda.github.io&#x2F;blog&#x2F;2019&#x2F;11&#x2F;05&#x2F;parse-don-t-validate&#x2F;&quot;&gt;https:&#x2F;&#x2F;lexi-lambda.github.io&#x2F;blog&#x2F;2019&#x2F;11&#x2F;05&#x2F;parse-don-t-validate&#x2F;&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</content>
+        
+    </entry>
     <entry xml:lang="en">
         <title>Albums I Listened to in College</title>
         <published>2026-01-08T00:00:00+00:00</published>
