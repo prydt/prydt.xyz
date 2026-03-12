@@ -4,8 +4,51 @@
     <link rel="self" type="application/atom+xml" href="https://prydt.xyz/atom.xml"/>
     <link rel="alternate" type="text/html" href="https://prydt.xyz"/>
     <generator uri="https://www.getzola.org/">Zola</generator>
-    <updated>2026-03-05T00:00:00+00:00</updated>
+    <updated>2026-03-12T00:00:00+00:00</updated>
     <id>https://prydt.xyz/atom.xml</id>
+    <entry xml:lang="en">
+        <title>On Tony Hoare</title>
+        <published>2026-03-12T00:00:00+00:00</published>
+        <updated>2026-03-12T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Pranoy Dutta
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://prydt.xyz/blog/tony-hoare/"/>
+        <id>https://prydt.xyz/blog/tony-hoare/</id>
+        
+        <content type="html" xml:base="https://prydt.xyz/blog/tony-hoare/">&lt;p&gt;Every so often something happens that makes me remember that computer programming is a new thing.&lt;&#x2F;p&gt;
+&lt;p&gt;Something that makes me remember that we are still in the infancy of computing. That we don&#x27;t really know what we are doing and we are still figuring it out. We can&#x27;t boast the long histories of fields like math, medicine, or mechanics.&lt;&#x2F;p&gt;
+&lt;p&gt;Sir Tony Hoare&#x27;s recent passing made me remember that.&lt;&#x2F;p&gt;
+&lt;p&gt;Computing is such a young field that many of our pioneers are still around.[^2] Hoare is an inspiration to me and I thought it would be nice to write a little about his many contributions to our young field.&lt;&#x2F;p&gt;
+&lt;p&gt;While Hoare was most known for &lt;strong&gt;Quicksort&lt;&#x2F;strong&gt;[^1], I want to cover some of his other work:&lt;&#x2F;p&gt;
+&lt;ul&gt;
+&lt;li&gt;Record Handling (structs, enums, null)&lt;&#x2F;li&gt;
+&lt;li&gt;Monitor Synchronization&lt;&#x2F;li&gt;
+&lt;li&gt;Floyd-Hoare Logic&lt;&#x2F;li&gt;
+&lt;li&gt;Communicating Sequential Processes&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+&lt;h1 id=&quot;record-handling-1966&quot;&gt;Record Handling (1966)&lt;&#x2F;h1&gt;
+&lt;p&gt;Hoare introduced the idea of &quot;record structures&quot; which are now just called structs. In this same essay, he introduces &quot;record subclasses&quot; which are akin to discriminated unions (think Rust enums). Finally, if that wasn&#x27;t enough, he introduces the notion of a &quot;null reference&quot; which he calls his &quot;billion dollar mistake.&quot; Anytime you get a NullPointerException? That&#x27;s him too.&lt;&#x2F;p&gt;
+&lt;h1 id=&quot;monitor-synchronization&quot;&gt;Monitor Synchronization&lt;&#x2F;h1&gt;
+&lt;p&gt;Hoare elaborated and popularized the Monitor concurrency primitive invented by Per Brinch Hansen. Monitors solve a common issue in concurrent programs: making threads (efficiently) wait for a condition to become true before continuing.&lt;&#x2F;p&gt;
+&lt;h1 id=&quot;floyd-hoare-logic&quot;&gt;Floyd-Hoare Logic&lt;&#x2F;h1&gt;
+&lt;p&gt;In &quot;An Axiomatic Basis for Computer Programming&quot; (1969), Hoare develops a systematic method for reasoning about the meaning of computer programs. One of the key ideas of this logic is what is now known as a &quot;Hoare triple&quot;: &lt;code&gt;P {Q} R&lt;&#x2F;code&gt; where &lt;code&gt;P&lt;&#x2F;code&gt; is a precondition, &lt;code&gt;Q&lt;&#x2F;code&gt; is a program, and &lt;code&gt;R&lt;&#x2F;code&gt; is a postcondition. If &lt;code&gt;P&lt;&#x2F;code&gt; holds, then running &lt;code&gt;Q&lt;&#x2F;code&gt; will lead to &lt;code&gt;R&lt;&#x2F;code&gt; being true. With axioms and inference rules for imperative programming, you can write a proof about the behavior of programs which is exactly what modern verification languages like &lt;a href=&quot;https:&#x2F;&#x2F;dafny.org&#x2F;&quot;&gt;Dafny&lt;&#x2F;a&gt; and &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;verus-lang&#x2F;verus&quot;&gt;Verus&lt;&#x2F;a&gt; do!&lt;&#x2F;p&gt;
+&lt;h1 id=&quot;communicating-sequential-processes-csp&quot;&gt;Communicating Sequential Processes (CSP)&lt;&#x2F;h1&gt;
+&lt;p&gt;The core idea of CSP is modeling concurrent systems as a set of independent processes which do not share memory but instead communicate through &quot;channels.&quot; Processes can send messages cross these channels, and other processes can recieve messages through them.&lt;&#x2F;p&gt;
+&lt;p&gt;You can see the echos of CSP&#x27;s influence in languages like Erlang and Go.&lt;&#x2F;p&gt;
+&lt;p&gt;These are just some of Tony Hoare&#x27;s most influencial ideas but I need to stop somewhere (and it&#x27;s 1:40AM here so I should logoff...).&lt;&#x2F;p&gt;
+&lt;p&gt;Rest in peace.&lt;&#x2F;p&gt;
+&lt;p&gt;[^1] &lt;a href=&quot;https:&#x2F;&#x2F;doc.rust-lang.org&#x2F;std&#x2F;primitive.slice.html#method.sort_unstable&quot;&gt;Rust&lt;&#x2F;a&gt; and &lt;a href=&quot;https:&#x2F;&#x2F;en.cppreference.com&#x2F;w&#x2F;cpp&#x2F;algorithm&#x2F;sort.html#Notes&quot;&gt;C++&lt;&#x2F;a&gt; both include a &quot;sort&quot; algorithm which is a hybrid sorting algorithm which uses Quicksort for large arrays, and fallsback to heapsort and insertion sort for smaller arrays. The details vary from language to language but Quicksort is still state of the art!&lt;&#x2F;p&gt;
+&lt;p&gt;[^2] Alan Turing could&#x27;ve probably made it to the 1990s if the Brits weren&#x27;t as homophobic. He would be 114 today.&lt;&#x2F;p&gt;
+</content>
+        
+    </entry>
     <entry xml:lang="en">
         <title>Configuration Languages Should be Strongly Typed</title>
         <published>2026-03-05T00:00:00+00:00</published>

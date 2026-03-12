@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt's site</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <h1>prydt's site</h1>
+            <nav>
+                <a href="/">home</a>
+                <a href="/blog">blog</a>
+                <a href="atom.xml">feed</a>
+            </nav>
+        </header>
+
+        <section class="content">
+            
+<h1 class="title">On Tony Hoare</h1>
+<hr>
+
+<p>
+    Posted: <strong>2026-03-12</strong>
+</p>
+
+
+<p>Author: Pranoy Dutta</p>
+
+<hr>
+
+<p>Every so often something happens that makes me remember that computer programming is a new thing.</p>
+<p>Something that makes me remember that we are still in the infancy of computing. That we don't really know what we are doing and we are still figuring it out. We can't boast the long histories of fields like math, medicine, or mechanics.</p>
+<p>Sir Tony Hoare's recent passing made me remember that.</p>
+<p>Computing is such a young field that many of our pioneers are still around.[^2] Hoare is an inspiration to me and I thought it would be nice to write a little about his many contributions to our young field.</p>
+<p>While Hoare was most known for <strong>Quicksort</strong>[^1], I want to cover some of his other work:</p>
+<ul>
+<li>Record Handling (structs, enums, null)</li>
+<li>Monitor Synchronization</li>
+<li>Floyd-Hoare Logic</li>
+<li>Communicating Sequential Processes</li>
+</ul>
+<h1 id="record-handling-1966">Record Handling (1966)</h1>
+<p>Hoare introduced the idea of "record structures" which are now just called structs. In this same essay, he introduces "record subclasses" which are akin to discriminated unions (think Rust enums). Finally, if that wasn't enough, he introduces the notion of a "null reference" which he calls his "billion dollar mistake." Anytime you get a NullPointerException? That's him too.</p>
+<h1 id="monitor-synchronization">Monitor Synchronization</h1>
+<p>Hoare elaborated and popularized the Monitor concurrency primitive invented by Per Brinch Hansen. Monitors solve a common issue in concurrent programs: making threads (efficiently) wait for a condition to become true before continuing.</p>
+<h1 id="floyd-hoare-logic">Floyd-Hoare Logic</h1>
+<p>In "An Axiomatic Basis for Computer Programming" (1969), Hoare develops a systematic method for reasoning about the meaning of computer programs. One of the key ideas of this logic is what is now known as a "Hoare triple": <code>P {Q} R</code> where <code>P</code> is a precondition, <code>Q</code> is a program, and <code>R</code> is a postcondition. If <code>P</code> holds, then running <code>Q</code> will lead to <code>R</code> being true. With axioms and inference rules for imperative programming, you can write a proof about the behavior of programs which is exactly what modern verification languages like <a href="https://dafny.org/">Dafny</a> and <a href="https://github.com/verus-lang/verus">Verus</a> do!</p>
+<h1 id="communicating-sequential-processes-csp">Communicating Sequential Processes (CSP)</h1>
+<p>The core idea of CSP is modeling concurrent systems as a set of independent processes which do not share memory but instead communicate through "channels." Processes can send messages cross these channels, and other processes can recieve messages through them.</p>
+<p>You can see the echos of CSP's influence in languages like Erlang and Go.</p>
+<p>These are just some of Tony Hoare's most influencial ideas but I need to stop somewhere (and it's 1:40AM here so I should logoff...).</p>
+<p>Rest in peace.</p>
+<p>[^1] <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.sort_unstable">Rust</a> and <a href="https://en.cppreference.com/w/cpp/algorithm/sort.html#Notes">C++</a> both include a "sort" algorithm which is a hybrid sorting algorithm which uses Quicksort for large arrays, and fallsback to heapsort and insertion sort for smaller arrays. The details vary from language to language but Quicksort is still state of the art!</p>
+<p>[^2] Alan Turing could've probably made it to the 1990s if the Brits weren't as homophobic. He would be 114 today.</p>
+
+
+<!-- - Pranoy Dutta -->
+
+
+        </section>
+
+        <footer>
+            <!-- TODO -->
+        </footer>
+    </main>
+
+</body>
+
+</html>
