@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prydt's site</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main>
+        <header>
+            <h1>prydt's site</h1>
+            <nav>
+                <a href="/">home</a>
+                <a href="/blog">blog</a>
+                <a href="/atom.xml">feed</a>
+            </nav>
+        </header>
+
+        <section class="content">
+            
+<h1 class="title">A Few Good Ideas in Programming Languages</h1>
+<hr>
+
+<p>
+    Posted: <strong>2026-05-10</strong>
+</p>
+
+
+<p>Author: Pranoy Dutta</p>
+
+<hr>
+
+<p>Here are just a few programming language features I love:</p>
+<h1 id="1-flow-typing">1. Flow Typing</h1>
+<p>A great idea that I first encountered in <a href="https://crystal-lang.org">Crystal</a>, is the idea of <em>flow typing</em>.</p>
+<p>Crystal is a compiled programming langauge with static type-checking with syntax very similar to the <a href="https://www.ruby-lang.org/en/">Ruby programming language</a>. Something that keeps Crystal feeling like a dynamically typed language is how a variable can be assigned to multiple types throughout the course of its lifetime, unlike most statically typed languages I've used. Here is an example:</p>
+<pre data-lang="Crystal" style="background-color:#fafafa;color:#383a42;" class="language-Crystal "><code class="language-Crystal" data-lang="Crystal"><span>my_var </span><span style="color:#a626a4;">= </span><span style="color:#c18401;">5
+</span><span>
+</span><span style="color:#a0a1a7;"># my_var&#39;s type here is Int32
+</span><span>assert(my_var.is_a?(</span><span style="color:#c18401;">Int32</span><span>))
+</span><span>
+</span><span style="color:#a626a4;">if</span><span> some_complex_condition()
+</span><span>  my_var </span><span style="color:#a626a4;">= </span><span style="color:#50a14f;">&quot;hello!&quot;
+</span><span>
+</span><span style="color:#a0a1a7;">  # my_var&#39;s type here is String
+</span><span>  assert(my_var.is_a?(</span><span style="color:#c18401;">String</span><span>))
+</span><span style="color:#a626a4;">end
+</span><span>
+</span><span style="color:#a0a1a7;"># What is my_var&#39;s type here?
+</span><span style="color:#a0a1a7;">#
+</span><span style="color:#a0a1a7;"># It&#39;s Int32 | String
+</span><span>assert(my_var.is_a?(</span><span style="color:#c18401;">Int32 </span><span style="color:#a626a4;">| </span><span style="color:#c18401;">String</span><span>))
+</span></code></pre>
+<p>What's most interesting about this is that there is some time when <code>my_var</code> is just a <code>Int32</code>, there is a region where it is guaranteed to be a <code>String</code> and then there is a region where the compiler cannot actually guarantee one or the other... so its type is the union of all the possibilities. Now if you try to run a <code>String</code> method on <code>my_var</code>, it'll fail because its not a <code>String</code>, its a <code>Int32 | String</code> and the compiler will force you to add a check like <code>if my_var.is_a?(String)</code> which <em>narrows</em> the possible types to just a <code>String</code>.</p>
+<p>This is a great example of using fancy type inference to make a compiled language <em>feel</em> dynamic without paying much of a runtime penalty.</p>
+<p>Typescript also has <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html#control-flow-analysis">flow typing</a> and <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">type narrowing</a>!</p>
+<h1 id="2-borrow-checking">2. Borrow Checking</h1>
+<p><a href="https://rust-lang.org/">Rust</a> is a systems programming language which guarantees memory safety without a garbage collector.</p>
+<p>One large class of memory safety bugs in concurrent programs is the loathsome data race: when multiple threads read and write the same memory location simultaneously without synchronization.</p>
+<p>The borrow checker is how Rust is able to statically prevent data races at compile-time. It enforces the following <a href="https://doc.rust-lang.org/1.8.0/book/references-and-borrowing.html">rules</a>:</p>
+<ul>
+<li>Any borrow must not out-live the scope of the owner</li>
+<li>You can EITHER have:
+<ul>
+<li>exactly 1 mutable reference (<code>&amp;mut T</code>)</li>
+<li>OR 1 or more immutable references (<code>&amp;T</code>)</li>
+</ul>
+</li>
+</ul>
+<p>This might remind you of a <a href="https://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">readers-writer lock</a> which is a lock which allows many readers OR a singular writer. This is because to prevent data races, we only need to synchronize reads with respect to writes. The point of concurrent synchronization is to serialize the writes to a given memory location.</p>
+<p>I love the borrow checker because it is such an elegant solution to the problem of data races and are a zero-cost abstraction which only comes at the cost of compile-time checks and added complexity. Added complexity is a real tradeoff but if you are writing concurrent programs, this complexity is inherent to the subject matter.</p>
+<h1 id="3-contract-programming">3. Contract Programming</h1>
+<p>If you've programmed much, you've probably come across the humble assert statement, which is used to error / report if a given invariant isn't upheld. Every program has invariants that it needs to uphold. Things like "this date is always past this other date" or "this tree is always balanced."</p>
+<p>The <a href="https://dlang.org/">D programming language</a> (such an underrated language) supports <a href="https://dlang.org/spec/contracts.html">contract programming</a> where it provides syntactic support for describing more complex invariants which can be at the function-level or object-level.</p>
+<p>D has standard assert statements:</p>
+<pre data-lang="D" style="background-color:#fafafa;color:#383a42;" class="language-D "><code class="language-D" data-lang="D"><span style="color:#a626a4;">double </span><span style="color:#e45649;">always_positive </span><span style="color:#a626a4;">= </span><span style="color:#c18401;">100</span><span>;
+</span><span style="color:#a626a4;">assert</span><span>(</span><span style="color:#e45649;">always_positive </span><span style="color:#a626a4;">&gt; </span><span style="color:#c18401;">0</span><span>);
+</span></code></pre>
+<p>But D also has <code>enforce</code> which is used to mark a difference in semantics. Asserts are used for program invariant violations. If an assert is triggered, this should indicate a correctness bug in our program. <code>enforce</code> instead throws an exception due to some external issue: something like a user input out of bounds or environment issue.</p>
+<pre data-lang="D" style="background-color:#fafafa;color:#383a42;" class="language-D "><code class="language-D" data-lang="D"><span style="color:#e45649;">enforce</span><span>(</span><span style="color:#e45649;">length </span><span style="color:#a626a4;">&gt;= </span><span style="color:#c18401;">7</span><span>, </span><span style="color:#50a14f;">&quot;Must be at least 7.&quot;</span><span>);
+</span></code></pre>
+<p>Additionally, D has syntactic support for pre- and post-conditions for functions.  Here's an example taken from <a href="https://ddili.org/ders/d.en/contracts.html">Programming in D</a>:</p>
+<pre data-lang="D" style="background-color:#fafafa;color:#383a42;" class="language-D "><code class="language-D" data-lang="D"><span style="color:#a626a4;">int </span><span style="color:#0184bc;">daysInFebruary</span><span>(</span><span style="color:#a626a4;">int </span><span style="color:#e45649;">year</span><span>)
+</span><span style="color:#a626a4;">out </span><span>(</span><span style="color:#e45649;">result</span><span>) {
+</span><span>    </span><span style="color:#a626a4;">assert</span><span>((</span><span style="color:#e45649;">result </span><span style="color:#a626a4;">== </span><span style="color:#c18401;">28</span><span>) </span><span style="color:#a626a4;">|| </span><span>(</span><span style="color:#e45649;">result </span><span style="color:#a626a4;">== </span><span style="color:#c18401;">29</span><span>));
+</span><span>
+</span><span>} </span><span style="color:#a626a4;">do </span><span>{
+</span><span>    </span><span style="color:#a626a4;">return </span><span style="color:#e45649;">isLeapYear</span><span>(</span><span style="color:#e45649;">year</span><span>) </span><span style="color:#a626a4;">? </span><span style="color:#c18401;">29 </span><span style="color:#a626a4;">: </span><span style="color:#c18401;">28</span><span>;
+</span><span>}
+</span></code></pre>
+<p>Here the <code>daysInFebruary</code> function has a post-condition which is that it should only ever return 28 or 29; everything else is definitely a logical error in the function.</p>
+<p>And finally, D has class-level invariants which are used to guarantee that object data is is always consistent. Here is a slightly more complex example tying everything together:</p>
+<pre data-lang="D" style="background-color:#fafafa;color:#383a42;" class="language-D "><code class="language-D" data-lang="D"><span style="color:#a626a4;">class </span><span style="color:#c18401;">BankAccount {
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">private double </span><span style="color:#e45649;">balance</span><span style="color:#c18401;">;
+</span><span style="color:#c18401;">
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">invariant</span><span style="color:#c18401;">() {
+</span><span style="color:#c18401;">        </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">&gt;= </span><span style="color:#c18401;">0; </span><span style="color:#a0a1a7;">// object-level invariant, always checked
+</span><span style="color:#c18401;">    }
+</span><span style="color:#c18401;">
+</span><span style="color:#c18401;">    </span><span style="color:#0184bc;">this</span><span style="color:#c18401;">(</span><span style="color:#a626a4;">double </span><span style="color:#e45649;">initialBalance</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">in </span><span style="color:#c18401;">(</span><span style="color:#e45649;">initialBalance </span><span style="color:#a626a4;">&gt;= </span><span style="color:#c18401;">0, </span><span style="color:#50a14f;">&quot;Initial balance cannot be negative&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    {
+</span><span style="color:#c18401;">        </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">= </span><span style="color:#e45649;">initialBalance</span><span style="color:#c18401;">;
+</span><span style="color:#c18401;">    }
+</span><span style="color:#c18401;">
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">void </span><span style="color:#0184bc;">deposit</span><span style="color:#c18401;">(</span><span style="color:#a626a4;">double </span><span style="color:#e45649;">amount</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">in  </span><span style="color:#c18401;">(</span><span style="color:#e45649;">amount </span><span style="color:#a626a4;">&gt; </span><span style="color:#c18401;">0, </span><span style="color:#50a14f;">&quot;Deposit amount must be positive&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">out </span><span style="color:#c18401;">(; </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">== </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">+ </span><span style="color:#e45649;">amount</span><span style="color:#c18401;">) </span><span style="color:#a0a1a7;">// checked after method returns
+</span><span style="color:#c18401;">    {
+</span><span style="color:#c18401;">        </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">+= </span><span style="color:#e45649;">amount</span><span style="color:#c18401;">;
+</span><span style="color:#c18401;">    }
+</span><span style="color:#c18401;">
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">void </span><span style="color:#0184bc;">withdraw</span><span style="color:#c18401;">(</span><span style="color:#a626a4;">double </span><span style="color:#e45649;">amount</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">in  </span><span style="color:#c18401;">(</span><span style="color:#e45649;">amount </span><span style="color:#a626a4;">&gt; </span><span style="color:#c18401;">0,           </span><span style="color:#50a14f;">&quot;Withdrawal amount must be positive&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">in  </span><span style="color:#c18401;">(</span><span style="color:#e45649;">amount </span><span style="color:#a626a4;">&lt;= </span><span style="color:#e45649;">balance</span><span style="color:#c18401;">,    </span><span style="color:#50a14f;">&quot;Insufficient funds&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">out </span><span style="color:#c18401;">(; </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">&gt;= </span><span style="color:#c18401;">0,       </span><span style="color:#50a14f;">&quot;Balance must remain non-negative&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    {
+</span><span style="color:#c18401;">        </span><span style="color:#e45649;">balance </span><span style="color:#a626a4;">-= </span><span style="color:#e45649;">amount</span><span style="color:#c18401;">;
+</span><span style="color:#c18401;">    }
+</span><span style="color:#c18401;">
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">double </span><span style="color:#0184bc;">getBalance</span><span style="color:#c18401;">()
+</span><span style="color:#c18401;">    </span><span style="color:#a626a4;">out </span><span style="color:#c18401;">(</span><span style="color:#e45649;">result</span><span style="color:#c18401;">; </span><span style="color:#e45649;">result </span><span style="color:#a626a4;">&gt;= </span><span style="color:#c18401;">0, </span><span style="color:#50a14f;">&quot;Balance returned must be non-negative&quot;</span><span style="color:#c18401;">)
+</span><span style="color:#c18401;">    {
+</span><span style="color:#c18401;">        </span><span style="color:#a626a4;">return </span><span style="color:#e45649;">balance</span><span style="color:#c18401;">;
+</span><span style="color:#c18401;">    }
+</span><span style="color:#c18401;">}
+</span></code></pre>
+<p>This <code>invariant()</code> block is far cleaner and easier to maintain than having some consistency check function run at the beginning and end of every class method, and it has idomatic meaning.</p>
+<p>-- Pranoy</p>
+
+
+<!-- - Pranoy Dutta -->
+
+
+        </section>
+
+        <footer>
+            <!-- TODO -->
+        </footer>
+    </main>
+
+</body>
+
+</html>

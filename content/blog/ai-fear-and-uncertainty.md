@@ -30,4 +30,4 @@ People feel that our current configuration of society will lead to them not gett
 
 I'm not saying that all of this is true. I'm saying that it doesn't take much to read the room and see that this is the general sentiment. And these feelings matter. If you want AI to be successful, if you really think it will do all these great things, we'll have to change the configuration of society to assure people that they will benefit. What this means, I'm not sure. I think a stronger welfare state is necessary.
 
-- Pranoy
+-- Pranoy
